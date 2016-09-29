@@ -3,8 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
+# C/C++ extensions
 *.so
+*.out
 
 # Distribution / packaging
 .Python
@@ -87,3 +88,13 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Project Specific
+.DS_Store
+_reading
+*.ast
+*.sublime-project
+*.sublime-workspace
+
+# Temporarily ignore *.cpp
+*.cpp

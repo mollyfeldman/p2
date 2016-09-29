@@ -22,7 +22,24 @@ install: venv requirements.txt
 	@echo "Synching dependencies..."
 	@source $(VENV_ACTIVATE_SCRIPT); pip-sync
 
-run: venv install
-	@echo "Nothing to do"
+reinstall:
+	@rm -rf $(VENV_DIR)
+	@make install
 
-.PHONY: default deps install run
+lint: install 
+	@echo "Running pep8..."; source $(VENV_ACTIVATE_SCRIPT); pep8 src/ && echo "OK!"
+	@echo "Running flake8..."; source $(VENV_ACTIVATE_SCRIPT); flake8 src/ && echo "OK!"
+
+clean:
+	@find src/ -iname "*.pyc" -exec rm {} \;
+
+console: install
+	@cd src; ipython
+
+test: install
+	@nosetests tests/
+
+run: venv install
+	@source $(VENV_ACTIVATE_SCRIPT); cd src; python main.py
+
+.PHONY: default deps install reinstall lint clean console test run
