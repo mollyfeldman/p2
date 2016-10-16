@@ -1,4 +1,5 @@
 import ast
+import json
 import os
 
 from ast_visitors import CountingVisitor
@@ -70,3 +71,49 @@ def process(path_to_dir):
 
     print g
     print [g.V[x].data for x in topological_sort(g)]
+    print graph_to_json(g)
+
+
+def graph_to_json(graph):
+    """Exports the graph in a format understandable
+    by the d3.js library. This means the following:
+
+    - Replace all vertex-ids with the ids implicit in the
+    ordering of vertices within the `nodes` array
+    - Change edge ids to reflect the new vertex ids
+    - Augment each node with a `depth` attribute for
+    rendering in a pleasing partial order
+    """
+
+    # Calculate depth by traversing the topologically
+    # sorted graph once, from start to end...
+    # Note that depth starts from 1: this is useful to
+    # distinguish lack of depth from starting-depth.
+    ordered_graph = topological_sort(graph)
+    new_ids = {}
+    depth = {vid: 1 for vid in ordered_graph}
+    for i, vid in enumerate(ordered_graph):
+        new_ids[vid] = i
+        vertex_depth = depth[vid]
+        for to_vertex_id in graph.V[vid].adj:
+            depth[to_vertex_id] = max(
+                depth[to_vertex_id],
+                vertex_depth + 1
+                )
+
+    data = {'nodes': [], 'links': []}
+    for vid in ordered_graph:
+        vertex = graph.V[vid]
+        data['nodes'].append({
+            'id': new_ids[vertex.uid],
+            'name': vertex.data.name,
+            'depth': depth[vertex.uid]
+        })
+        for vid in vertex.adj:
+            to_vertex = graph.V[vid]
+            data['links'].append({
+                'source': new_ids[vertex.uid],
+                'target': new_ids[to_vertex.uid]
+            })
+
+    return json.dumps(data, indent=2)

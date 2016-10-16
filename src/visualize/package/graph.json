@@ -1,0 +1,63 @@
+{
+  "nodes": [
+    {
+      "depth": 1, 
+      "id": 0, 
+      "name": "[04_hello_world_again,00_hello_world]"
+    }, 
+    {
+      "depth": 2, 
+      "id": 1, 
+      "name": "[05_hello_world_twice]"
+    }, 
+    {
+      "depth": 2, 
+      "id": 2, 
+      "name": "[01_hello_function]"
+    }, 
+    {
+      "depth": 3, 
+      "id": 3, 
+      "name": "[03_hello_param]"
+    }, 
+    {
+      "depth": 4, 
+      "id": 4, 
+      "name": "[02_hello_param_if]"
+    }
+  ], 
+  "links": [
+    {
+      "source": 0, 
+      "target": 2
+    }, 
+    {
+      "source": 0, 
+      "target": 4
+    }, 
+    {
+      "source": 0, 
+      "target": 3
+    }, 
+    {
+      "source": 0, 
+      "target": 1
+    }, 
+    {
+      "source": 1, 
+      "target": 4
+    }, 
+    {
+      "source": 2, 
+      "target": 4
+    }, 
+    {
+      "source": 2, 
+      "target": 3
+    }, 
+    {
+      "source": 3, 
+      "target": 4
+    }
+  ]
+}
