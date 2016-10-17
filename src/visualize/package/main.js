@@ -5,6 +5,9 @@
  * http://alignedleft.com/tutorials/d3/binding-data
  * http://jsdatav.is/visuals.html?id=83515b77c2764837aac2
  * http://bl.ocks.org/mbostock/1153292
+ *
+ * D3 Force Layout API Ref
+ * https://github.com/d3/d3-3.x-api-reference/blob/master/Force-Layout.md
  * 
  * SVG Mouseevents
  * http://bl.ocks.org/WilliamQLiu/76ae20060e19bf42d774
@@ -23,13 +26,19 @@
     .attr('width', width)
     .attr('height', height);
 
-  var nodeRadius = 10;
+  var nodeRadius = 10,
+    nodeCharge = -300,
+    verticalSpace = 100,
+    linkStrengthArray = [0.5, 0.2, 0.05];
   
   var force = null,
     nodes = null,
     links = null,
+    levels = null,
     names = null,
     maxDepth = 0;
+
+  var showLevels = false;
 
   function init(graph) {
     svg.selectAll('*').remove();
@@ -49,8 +58,58 @@
       .size([width, height])
       .nodes(graph.nodes)
       .links(graph.links)
-      .linkDistance(150)
-      .charge(-100);
+      .linkDistance(function (d) {
+        var depthDiff = d.target.depth - d.source.depth;
+        return depthDiff * verticalSpace;
+      })
+      .linkStrength(function (d) {
+        // Beyond 3 levels, the link strength parameter
+        // is completely ineffective.
+        var depthDiff = d.target.depth - d.source.depth;
+        return (
+          (depthDiff < linkStrengthArray.length) ?
+          linkStrengthArray[depthDiff] : 0
+        );
+      })
+      .charge(nodeCharge);
+
+    // Traverese the node data...
+    maxDepth = graph.nodes.reduce(function (maxSoFar, d) {
+      d.depth = d.depth || 1;
+      return (maxSoFar > d.depth) ? maxSoFar : d.depth;
+    }, 0);
+
+    depthData = [];
+    for (var i = 1; i <= maxDepth; ++i) {
+      datum = graph.nodes.filter(function (d) {
+        return d.depth == i;
+      })
+      depthData.push({
+        depth: i,
+        nodes: datum
+      });
+    }
+
+    levels = svg
+      .append('g')
+      .attr('display', showLevels ? 'inherit' : 'none')
+      .attr('id', 'g-levels')
+        .selectAll('.level-connector')
+        .data(depthData)
+        .enter().append('path')
+          .attr('class', 'level-connector')
+          .attr('id', function(d) {
+            return 'level-' + d.depth
+          });
+
+    links = svg
+      .append('g')
+      .attr('id', 'g-links')
+        .selectAll('.link')
+        .data(graph.links)
+        .enter().append('path')
+          .attr('class', 'link')
+          .attr('marker-end', 'url(#program)');
 
     nodes = svg
       .append('g')
@@ -65,21 +124,6 @@
           })
           .on('mouseover', handleNodeMouseOver)
           .on('mouseout', handleNodeMouseOut);
-
-    // Traverese the node data...
-    maxDepth = nodes.data().reduce(function (maxSoFar, d) {
-      d.depth = d.depth || 1;
-      return (maxSoFar > d.depth) ? maxSoFar : d.depth;
-    }, 0);
-
-    links = svg
-      .append('g')
-      .attr('id', 'g-links')
-        .selectAll('.link')
-        .data(graph.links)
-        .enter().append('path')
-          .attr('class', 'link')
-          .attr('marker-end', 'url(#program)');
 
     names = svg
       .append('g')
@@ -128,6 +172,33 @@
       "L" + targetX + "," + targetY;
   }
 
+  function levelLine(d) {
+    var leadingOffset = 50;
+    var sortedCoords = d.nodes.map(function (node) {
+      return {x: node.x, y: node.y};
+    }).sort(function (first, second) {
+      return first.x - second.x;
+    });
+
+    if (!sortedCoords.length) {
+      return "";
+    }
+
+    var pathSpec = [];
+    var eachPt = sortedCoords.shift();
+    pathSpec.push('M' + 0 + ',' + height/2.0);
+    pathSpec.push('L' + (eachPt.x - leadingOffset) + ',' + eachPt.y);
+    while (sortedCoords.length) {
+      eachPt = sortedCoords.shift();
+      pathSpec.push('L' + (eachPt.x - leadingOffset) + ',' + eachPt.y);
+    }
+    pathSpec.push('L' + (eachPt.x + leadingOffset) + ',' + eachPt.y);
+    pathSpec.push('L' + width + ',' + height/2.0);
+
+    var pathSpecStr = pathSpec.join(' ');
+    return pathSpecStr;
+  }
+
   function transform(d) {
     return "translate(" + d.x + "," + d.y + ")";
   }
@@ -142,6 +213,7 @@
     nodes.attr('transform', transform);
     names.attr('transform', transform);
     links.attr('d', linkLine);
+    levels.attr('d', levelLine);
   }
 
   d3.json('graph.json', function (err, json) {
