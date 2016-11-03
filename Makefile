@@ -1,5 +1,7 @@
 VENV_DIR=./venv
 VENV_ACTIVATE_SCRIPT=$(VENV_DIR)/bin/activate
+SOURCE?='data/practice-python'
+DEST?=''
 
 default: run
 
@@ -39,7 +41,15 @@ console: install
 test: install
 	@nosetests tests/
 
-run: venv install
-	@. $(VENV_ACTIVATE_SCRIPT); cd src; python cli.py order '../data/practice-python'
+.PHONY: install reinstall lint clean console test
 
-.PHONY: default deps install reinstall lint clean console test run
+run: install
+	@. $(VENV_ACTIVATE_SCRIPT); cd src; python cli.py order $(SOURCE) -o $(DEST)
+
+visualize: install
+	@. $(VENV_ACTIVATE_SCRIPT); cd src;\
+	 python cli.py order $(SOURCE) -o 'src/visualize/package/graph.json'
+	@. $(VENV_ACTIVATE_SCRIPT); cd src/visualize;\
+	 python main.py
+
+.PHONY: run visualize
