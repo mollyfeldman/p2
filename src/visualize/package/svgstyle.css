@@ -11,12 +11,22 @@
 
 .link {
     fill: none;
+    stroke: rgba(0, 0, 0, 0.05);
+    stroke-width: 1px;
+}
+
+.link.active {
     stroke: #777;
-    stroke-width: 2px;
+    stroke-width: 3px;
+}
+
+.link.inactive {
+    stroke: rgba(0, 0, 0, 0.05);
+    stroke-width: 1px;
 }
 
 .link-node {
-    fill: #777;
+    fill: #efefef;
 }
 
 .level-connector {
@@ -24,6 +34,16 @@
     stroke: #ccf;
     stroke-width: 2px;
     stroke-dasharray: 0,2 1;   
+}
+
+.canvas-bg {
+    fill: #fff;
+}
+
+#svg-frame {
+    width: 100%;
+    height: 800px;
+    border: solid 1px #eee;
 }
 
 marker#program {
