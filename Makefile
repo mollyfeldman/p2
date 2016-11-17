@@ -1,7 +1,11 @@
 VENV_DIR=./venv
 VENV_ACTIVATE_SCRIPT=$(VENV_DIR)/bin/activate
+PIP_VERSION=9.0.1
 SOURCE?='data/practice-python'
 DEST?=''
+MANIFEST?=''
+DEBUG?=0
+FLASK_CONFIG=FLASK_APP=app.py FLASK_DEBUG=$(DEBUG)
 
 default: run
 
@@ -10,7 +14,7 @@ ifeq ("","$(wildcard "$(VENV_ACTIVATE_SCRIPT)")")
 	@virtualenv $(VENV_DIR)
 	@\
 		. "$(VENV_ACTIVATE_SCRIPT)"; \
-		pip install pip==8.1.1; \
+		pip install pip==$(PIP_VERSION); \
 		pip install pip-tools
 endif
 
@@ -29,8 +33,7 @@ reinstall:
 	@make install
 
 lint: install 
-	@echo "Running pep8..."; . $(VENV_ACTIVATE_SCRIPT); pep8 src/ && echo "OK!"
-	@echo "Running flake8..."; . $(VENV_ACTIVATE_SCRIPT); flake8 src/ && echo "OK!"
+	@. $(VENV_ACTIVATE_SCRIPT); . './lint.sh'
 
 clean:
 	@find src/ -iname "*.pyc" -exec rm {} \;
@@ -44,12 +47,16 @@ test: install
 .PHONY: install reinstall lint clean console test
 
 run: install
-	@. $(VENV_ACTIVATE_SCRIPT); cd src; python cli.py order $(SOURCE) -o $(DEST)
+	@. $(VENV_ACTIVATE_SCRIPT); cd src; python cli.py order $(SOURCE) -o $(DEST) -m $(MANIFEST)
+
+serve: install
+	@. $(VENV_ACTIVATE_SCRIPT); cd src/visualize;\
+	 $(FLASK_CONFIG) python -m flask run
 
 visualize: install
 	@. $(VENV_ACTIVATE_SCRIPT); cd src;\
-	 python cli.py order $(SOURCE) -o 'src/visualize/package/graph.json'
+	 python cli.py order $(SOURCE) -o 'src/visualize/package/graph.json' -m 'src/visualize/package/manifest.json'
 	@. $(VENV_ACTIVATE_SCRIPT); cd src/visualize;\
-	 python main.py
+	 $(FLASK_CONFIG) python -m flask run
 
-.PHONY: run visualize
+.PHONY: run serve visualize
