@@ -4,21 +4,25 @@ import os
 
 from ast_visitors import CountingVisitor
 from disjoint_set import Forest
-from program_meta import ProgramMeta, ProgramMetaGroup
+from p2_convert import split_meta_source
+from program_info import ProgramInfo, ProgramInfoGroup
 from graph import Graph
 from graph_utils import topological_sort
 from utils import warn
 
 
-def get_file_meta(filepath):
+def get_program_info(filepath):
     file = open(filepath, 'r')
-    source = file.read()
+    data = file.read()
+
+    meta, source = split_meta_source(data)
+
     root = ast.parse(source)
 
     counter = CountingVisitor()
     counter.visit(root)
 
-    return ProgramMeta(filepath, counter.counts)
+    return ProgramInfo(filepath, counter.counts, meta)
 
 
 def decompose_to_scc(programs):
@@ -40,7 +44,7 @@ def decompose_to_scc(programs):
         try:
             program_group = minimal_programs[pid]
         except KeyError:
-            program_group = minimal_programs[pid] = ProgramMetaGroup([])
+            program_group = minimal_programs[pid] = ProgramInfoGroup([])
         program_group.add(program)
 
     return minimal_programs.values()
@@ -52,12 +56,12 @@ def process(path_to_dir, debug):
     program_to_vertex = {}
     for filename in os.listdir(path_to_dir):
         _, extension = os.path.splitext(filename)
-        if extension != '.py':
+        if extension != '.p2':
             continue
 
         filepath = os.path.join(path_to_dir, filename)
         try:
-            meta = get_file_meta(filepath)
+            meta = get_program_info(filepath)
         except SyntaxError as e:
             warn('Error processing "{}" at {}:{}\n{}'.format(
                 filename, e.lineno, e.offset, e.text))
