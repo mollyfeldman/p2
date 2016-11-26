@@ -11,15 +11,15 @@ def split_meta_source(data):
     return meta, source
 
 
-def get_name_from_filename(filename):
+def _get_name_from_filename(filename):
     parts = filename.split('_')
     return ' '.join([
         part.title() for part in parts[1:]
     ])
 
 
-def main():
-    path_to_dir = os.path.realpath('../data/practice-python')
+def convert_py(path_to_dir, author, primary_reference):
+    num_files_converted = 0
     for filename in os.listdir(path_to_dir):
         filepath = os.path.join(path_to_dir, filename)
         with open(filepath, 'r') as input_file:
@@ -29,12 +29,12 @@ def main():
         if ext != '.py':
             continue
         meta = {
-            'name': get_name_from_filename(base),
+            'name': _get_name_from_filename(base),
             'language': ext[1:],
             'created_on': os.path.getmtime(filepath),
-            'created_by': 'p2-contributor',
+            'created_by': author,
             'retrieved_from': '',
-            'references': ['http://www.practicepython.org/']
+            'references': [primary_reference]
         }
 
         output_filename = '{}.p2'.format(base)
@@ -44,6 +44,5 @@ def main():
                 yaml.dump(meta, default_flow_style=False)))
             output_file.write(code)
 
-
-if __name__ == '__main__':
-    main()
+        num_files_converted += 1
+    return num_files_converted

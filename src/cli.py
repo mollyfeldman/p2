@@ -1,10 +1,14 @@
-import os
 import json
+import os
+from datetime import datetime, timedelta
 
 import click
 
-from main import process
 from utils import success, warn
+
+from generate.p2_convert import convert_py as p2_convert_py
+from generate.p2_so_crawl import pull_snippets
+from order.main import process
 
 
 @click.group()
@@ -59,6 +63,39 @@ def order(input_dir, output, manifest, debug):
 
     success('Wrote partial ordering graph of {} to {}'.format(input_dirpath, output_filepath))
     success('Created manifest file at {}'.format(manifest_filepath))
+
+
+@cli.command()
+@click.argument('input-dir', type=click.Path())
+@click.option('--author', default='p2-contributor')
+@click.option('--reference', '-r', default=None)
+def convert_py(input_dir, author, reference):
+    input_dirpath = os.path.realpath(os.path.join('..', input_dir))
+    num_files = p2_convert_py(
+        path_to_dir=input_dirpath,
+        author=author,
+        primary_reference=reference
+    )
+
+    success('Converted {} *.py programs in {} to *.p2'.format(num_files, input_dirpath))
+
+
+@cli.command()
+@click.argument('output-dir', type=click.Path())
+@click.option('--tag', '-t', multiple=True)
+@click.option('--count', '-c', default=50)
+def pull_so_recent(output_dir, tag, count):
+    output_dirpath = os.path.realpath(os.path.join('..', output_dir))
+    current_time = datetime.utcnow()
+    num_snippets = pull_snippets(
+        num_snippets=count,
+        start_time=(current_time - timedelta(weeks=1)),
+        end_time=current_time,
+        extra_tags=list(tag),
+        save_to_dir=output_dirpath
+    )
+
+    success('Pulled {} snippets from StackOverflow into {}'.format(num_snippets, output_dirpath))
 
 
 if __name__ == '__main__':
