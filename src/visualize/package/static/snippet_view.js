@@ -17,6 +17,18 @@
         .text(text)
     }
 
+    function serializeTokens (tokens) {
+      var codeString = ''
+      if (tokens) {
+        for (var tokenName in tokens) {
+          if (tokens.hasOwnProperty(tokenName)) {
+            codeString += tokenName + ': ' + tokens[tokenName] + '\n'
+          }
+        }
+      }
+      return codeString
+    }
+
     this.el = d3.select(el)
     this.title = this.el
       .append('h3')
@@ -27,9 +39,34 @@
         .style('padding', '0px')
         .style('background', 'transparent')
       .append('code')
+
+    this.tokens = this.el
+      .append('div')
+        .attr('class', 'snippet-tokens col-sm-12')
+    this.tokensInner = this.tokens
+      .append('div')
+        .attr('class', 'row')
+    this.tokensInner
+      .append('h5')
+        .attr('class', 'col-sm-12')
+        .text('Token Counts')
+    this.tokenCountBlock = this.tokensInner
+      .append('pre')
+        .attr('class', 'code-snippet col-sm-12')
+        .style('padding', '0px')
+        .style('background', 'transparent')
+      .append('code')
+
     this.meta = this.el
       .append('div')
         .attr('class', 'snippet-meta col-sm-12')
+
+    this.updateTokens = function (meta) {
+      var tokenString = serializeTokens(meta.tokens)
+
+      this.tokenCountBlock.text(tokenString)
+      hljs.highlightBlock(this.tokenCountBlock.node())
+    }
 
     this.updateDetails = function (meta) {
       meta = meta || {}
@@ -79,6 +116,8 @@
 
       this.codeBlock.text(snippetCode)
       hljs.highlightBlock(this.codeBlock.node())
+
+      this.updateTokens(snippetMeta)
 
       this.updateDetails(snippetMeta)
     }.bind(this)

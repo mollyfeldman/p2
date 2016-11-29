@@ -52,13 +52,16 @@ def default():
 def snippet(program_id):
     with open('./package/manifest.json', 'r') as manifest_file:
         manifest = json.load(manifest_file)
-    program_filepath = manifest[str(program_id)]
+    program_meta = manifest[str(program_id)]
+    program_filepath = program_meta['filepath']
+    program_tokens = program_meta['token_counts']
     app.logger.info("snippet({}) --> {}".format(program_id, program_filepath))
 
     with open(program_filepath, 'r') as input_file:
         data = input_file.read()
 
     meta, source = split_meta_source(data)
+    meta['tokens'] = program_tokens
     response_data = {
         'meta': meta,
         'data': source.strip()
