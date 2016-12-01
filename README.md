@@ -6,30 +6,21 @@ P2: Programming Progressions
 To help educators and learners understand the *progression of skills* involved in transitioning from beginner to expert for any given programming problem set.
 
 ## Components
-1. `scr/cli.py`: Entry point for the *ordering* component: given a directory of `*.py` files, this generates the partial-ordering on this dataset (and associated metadata.)
+1. `scr/cli.py`: Entry point for the various sub-components. Exposes a number of sub-commands. To see them, type:
+```
+. ./venv/bin/activate
+cd src
+python cli.py --help
+```
+To see the usage of any subcommand, (e.g the `order` task) type:
+```
+python cli.py order --help
+```
+Documentation specific to how each subcommand works can be seen in the appropriate submodules. 
 2. `src/visalize/app.py`: Minimal Flask-app that serves the static files, as well as generated graph, snippets, etc.
 
 # Partial Ordering
-Currently, the logic focuses on *syntactic skills*, that is, elements of syntax that are required to solve various problems. While this is not exhaustive, it provides a good starting point to understand the *progression of skills* involved.
-
-Semantic knowledge (i.e, arrays used as input vs. arrays used to memoize computed values) will be of tremendous value, and will be considered for future work.
-
-## High Level Logic
-The super-rough method proposed to generate the skill tree is as follows:
-```py
-meta = {}
-for problem in problem_set:
-    syntax_tree = read_ast(problem)
-    meta[problem.name] = get_token_counts(syntax_tree)
-
-skill_tree = topological_sort(meta)
-```
-This logic is implemented in `main.py`. See `ast_visitors.py`, `program_meta.py`, `graph.py`, and `graph_utils.py` for details.
-
-## Preprocessing
-Topological sort only works on a Directed Acyclic Graph (DAG); unfortunately, we aren't assured that the dataset holds this quality. Specifically, if two programs `A, B` have exactly the same tokens and counts then `A <= B` and `B <= A` both hold, and the partial ordering graph is cyclic.
-
-In general, we break such cycles by decomposing the dataset into Strongly Connected Components (SCCs). This is done by building up a disjoint-set forest; see `disjoint_set.py` for details.
+See the [`order`](./src/order) module for details on the partial ordering.
 
 # Getting Started
 ## Prerequisites
@@ -60,6 +51,13 @@ SOURCE=data/hello make
 ```
 
 The default dataset is the `practice-python` dataset of ~20 problems and their solutions.
+
+### Running on StackOverflow posts
+The repository also exposes `make` targets to retrieve the most recent StackOverflow posts tagged `python`. To run the ordering analysis on these tasks, first pull the code snippets (into the `data/so_temp` directory), and then visualize this source.
+```
+make pull_so_recent
+SOURCE=data/so_temp make visualize
+```
 
 ## Tests
 There's no easy way to say this... tests are not up yet. Stay tuned (or better still, contribute some unit-tests!)
