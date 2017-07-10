@@ -1,3 +1,5 @@
+This is a fork of Sharadh Kirshnamurthy's MEng project advised by Erik Andersen at Cornell's Educational Technology Lab. 
+
 P2: Programming Progressions
 ====
 
@@ -69,4 +71,4 @@ This project is licensed under the MIT license - see the LICENSE.md file for det
 
 # Contributors
 * [Sharadh Krishnamurthy](https://github.com/Sharadh)
-* [Eric Anderson](http://www.cs.cornell.edu/~eland/)
+* [Eric Andersen](http://www.cs.cornell.edu/~eland/)
